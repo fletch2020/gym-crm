@@ -14,7 +14,11 @@ export default async function handler(req, res) {
     `;
 
     if (result.length > 0) {
-      return res.status(200).json(result[0]);
+      const user = {
+        ...result[0],
+        credits: parseFloat(result[0].credits) || 0
+      };
+      return res.status(200).json(user);
     } else {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
