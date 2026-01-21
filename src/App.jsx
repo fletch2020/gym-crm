@@ -5,6 +5,8 @@ const GymCRM = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [showSignUp, setShowSignUp] = useState(false);
+  const [signUpData, setSignUpData] = useState({ name: '', email: '', password: '', phone: '' });
   const [activeTab, setActiveTab] = useState('schedule');
   const [selectedDate, setSelectedDate] = useState('2026-01-20');
   const [showBookSession, setShowBookSession] = useState(null);
@@ -122,6 +124,40 @@ const GymCRM = () => {
     sessionStorage.removeItem('currentUser');
     setLoginEmail('');
     setLoginPassword('');
+    setShowSignUp(false);
+    setSignUpData({ name: '', email: '', password: '', phone: '' });
+  };
+
+  const handleSignUp = async () => {
+    if (!signUpData.name || !signUpData.email || !signUpData.password) {
+      alert('Please fill in all required fields (Name, Email, Password)');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch('/api/members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(signUpData)
+      });
+
+      if (res.ok) {
+        const newUser = await res.json();
+        setCurrentUser(newUser);
+        sessionStorage.setItem('currentUser', JSON.stringify(newUser));
+        setActiveTab('book-classes');
+        setSignUpData({ name: '', email: '', password: '', phone: '' });
+        setShowSignUp(false);
+        alert('Account created successfully! Please top up credits to start booking.');
+      } else {
+        const error = await res.json();
+        alert(error.error || 'Sign up failed - email may already exist');
+      }
+    } catch (err) {
+      alert('Sign up failed - please try again');
+    }
+    setLoading(false);
   };
 
   const addBooking = async () => {
@@ -271,37 +307,124 @@ const GymCRM = () => {
           <div className="text-center mb-8">
             <Dumbbell className="w-16 h-16 mx-auto text-blue-500 mb-4" />
             <h1 className="text-3xl font-bold">Fitness Studio</h1>
-            <p className="text-slate-400 mt-2">Live with Database</p>
+            <p className="text-slate-400 mt-2">{showSignUp ? 'Create Account' : 'Member Login'}</p>
           </div>
-          <div className="space-y-4">
-            <input
-              type="email"
-              value={loginEmail}
-              onChange={(e) => setLoginEmail(e.target.value)}
-              className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2"
-              placeholder="Email"
-              disabled={loading}
-            />
-            <input
-              type="password"
-              value={loginPassword}
-              onChange={(e) => setLoginPassword(e.target.value)}
-              className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2"
-              placeholder="Password"
-              disabled={loading}
-            />
-            <button 
-              onClick={handleLogin} 
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 px-4 py-3 rounded-lg font-semibold disabled:opacity-50"
-            >
-              {loading ? 'Logging in...' : 'Login'}
-            </button>
-            <div className="text-sm text-slate-400 mt-4">
-              <p>Admin: admin@gym.com / admin123</p>
-              <p>Member: jake@email.com / pass123</p>
-            </div>
-          </div>
+
+          {!showSignUp ? (
+            <>
+              <div className="space-y-4">
+                <input
+                  type="email"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2"
+                  placeholder="Email"
+                  disabled={loading}
+                />
+                <input
+                  type="password"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2"
+                  placeholder="Password"
+                  disabled={loading}
+                  onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                />
+                <button 
+                  onClick={handleLogin} 
+                  disabled={loading}
+                  className="w-full bg-blue-600 hover:bg-blue-700 px-4 py-3 rounded-lg font-semibold disabled:opacity-50"
+                >
+                  {loading ? 'Logging in...' : 'Login'}
+                </button>
+              </div>
+
+              <div className="mt-6 text-center">
+                <p className="text-slate-400 mb-3">Don't have an account?</p>
+                <button
+                  onClick={() => setShowSignUp(true)}
+                  className="w-full bg-green-600 hover:bg-green-700 px-4 py-3 rounded-lg font-semibold"
+                >
+                  Sign Up as New Member
+                </button>
+              </div>
+
+              <div className="text-sm text-slate-400 mt-6 p-4 bg-slate-700 rounded">
+                <p className="font-semibold mb-2">Demo Accounts:</p>
+                <p>Admin: admin@gym.com / admin123</p>
+                <p>Member: jake@email.com / pass123</p>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Full Name *</label>
+                  <input
+                    type="text"
+                    value={signUpData.name}
+                    onChange={(e) => setSignUpData({...signUpData, name: e.target.value})}
+                    className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2"
+                    placeholder="John Smith"
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Email *</label>
+                  <input
+                    type="email"
+                    value={signUpData.email}
+                    onChange={(e) => setSignUpData({...signUpData, email: e.target.value})}
+                    className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2"
+                    placeholder="john@email.com"
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Password *</label>
+                  <input
+                    type="password"
+                    value={signUpData.password}
+                    onChange={(e) => setSignUpData({...signUpData, password: e.target.value})}
+                    className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2"
+                    placeholder="Create a password"
+                    disabled={loading}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Phone Number (Optional)</label>
+                  <input
+                    type="tel"
+                    value={signUpData.phone}
+                    onChange={(e) => setSignUpData({...signUpData, phone: e.target.value})}
+                    className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2"
+                    placeholder="07700 900000"
+                    disabled={loading}
+                  />
+                </div>
+                
+                <div className="bg-blue-900 bg-opacity-30 border border-blue-600 p-3 rounded text-sm">
+                  <p className="text-blue-300">After signing up, you'll need to top up credits to start booking classes (£6) and gym sessions (£5).</p>
+                </div>
+
+                <button
+                  onClick={handleSignUp}
+                  disabled={loading}
+                  className="w-full bg-green-600 hover:bg-green-700 px-4 py-3 rounded-lg font-semibold disabled:opacity-50"
+                >
+                  {loading ? 'Creating Account...' : 'Create Account'}
+                </button>
+                
+                <button
+                  onClick={() => setShowSignUp(false)}
+                  disabled={loading}
+                  className="w-full bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg"
+                >
+                  Back to Login
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     );
