@@ -318,8 +318,11 @@ const GymCRM = () => {
           <div className="text-right">
             {!currentUser.is_admin && (
               <div className="bg-blue-700 px-4 py-2 rounded-lg mb-2">
-                <div className="text-sm">Balance</div>
+                <div className="text-sm text-blue-200">Account Balance</div>
                 <div className="text-2xl font-bold">£{currentUser.credits.toFixed(2)}</div>
+                <div className="text-xs text-blue-200 mt-1">
+                  {Math.floor(currentUser.credits / 6)} classes (£6) • {Math.floor(currentUser.credits / 5)} gym (£5)
+                </div>
               </div>
             )}
             <button onClick={handleLogout} className="bg-slate-700 px-4 py-2 rounded flex items-center gap-2">
