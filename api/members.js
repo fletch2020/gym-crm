@@ -6,7 +6,12 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
       const members = await sql`SELECT * FROM members`;
-      return res.status(200).json(members);
+      // Convert credits to number
+      const membersWithNumbers = members.map(m => ({
+        ...m,
+        credits: parseFloat(m.credits) || 0
+      }));
+      return res.status(200).json(membersWithNumbers);
     } catch (error) {
       return res.status(500).json({ error: error.message });
     }
@@ -20,7 +25,11 @@ export default async function handler(req, res) {
         VALUES (${name}, ${email}, ${password}, ${phone}, 0, false, TO_CHAR(CURRENT_DATE, 'YYYY-MM'))
         RETURNING *
       `;
-      return res.status(201).json(result[0]);
+      const member = {
+        ...result[0],
+        credits: parseFloat(result[0].credits) || 0
+      };
+      return res.status(201).json(member);
     } catch (error) {
       return res.status(500).json({ error: error.message });
     }
