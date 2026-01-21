@@ -149,7 +149,6 @@ const GymCRM = () => {
         setActiveTab('book-classes');
         setSignUpData({ name: '', email: '', password: '', phone: '' });
         setShowSignUp(false);
-        alert('Account created successfully! Please top up credits to start booking.');
       } else {
         const error = await res.json();
         alert(error.error || 'Sign up failed - email may already exist');
