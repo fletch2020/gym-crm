@@ -25,6 +25,20 @@ const GymCRM = () => {
     { day: 'Saturday', time: '8:20-9:20', type: 'Academy', key: 'sat-morning1-academy' },
   ];
 
+  // Check for saved session on load
+  useEffect(() => {
+    const savedUser = sessionStorage.getItem('currentUser');
+    if (savedUser) {
+      try {
+        const user = JSON.parse(savedUser);
+        setCurrentUser(user);
+        setActiveTab(user.is_admin ? 'schedule' : 'book-classes');
+      } catch (err) {
+        sessionStorage.removeItem('currentUser');
+      }
+    }
+  }, []);
+
   // Fetch data from database
   const fetchMembers = async () => {
     try {
@@ -61,10 +75,12 @@ const GymCRM = () => {
   };
 
   useEffect(() => {
-    fetchMembers();
-    fetchBookings();
-    fetchOverrides();
-  }, []);
+    if (currentUser) {
+      fetchMembers();
+      fetchBookings();
+      fetchOverrides();
+    }
+  }, [currentUser]);
 
   // Auto-refresh data every 10 seconds when logged in
   useEffect(() => {
@@ -90,6 +106,7 @@ const GymCRM = () => {
       if (res.ok) {
         const user = await res.json();
         setCurrentUser(user);
+        sessionStorage.setItem('currentUser', JSON.stringify(user));
         setActiveTab(user.is_admin ? 'schedule' : 'book-classes');
       } else {
         alert('Invalid credentials');
@@ -100,12 +117,18 @@ const GymCRM = () => {
     setLoading(false);
   };
 
+  const handleLogout = () => {
+    setCurrentUser(null);
+    sessionStorage.removeItem('currentUser');
+    setLoginEmail('');
+    setLoginPassword('');
+  };
+
   const addBooking = async () => {
     if (!showBookSession || currentUser.credits < 6) return;
     setLoading(true);
     
     try {
-      // Create booking
       await fetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -117,7 +140,6 @@ const GymCRM = () => {
         })
       });
 
-      // Update credits
       const newCredits = currentUser.credits - 6;
       await fetch('/api/members', {
         method: 'PUT',
@@ -125,14 +147,13 @@ const GymCRM = () => {
         body: JSON.stringify({ id: currentUser.id, credits: newCredits })
       });
 
-      // Refresh data
       await fetchMembers();
       await fetchBookings();
       
-      // Update current user
       const updatedMembers = await fetch('/api/members').then(r => r.json());
       const updatedUser = updatedMembers.find(m => m.id === currentUser.id);
       setCurrentUser(updatedUser);
+      sessionStorage.setItem('currentUser', JSON.stringify(updatedUser));
       
       setShowBookSession(null);
     } catch (err) {
@@ -147,14 +168,12 @@ const GymCRM = () => {
 
     setLoading(true);
     try {
-      // Delete booking
       await fetch('/api/bookings', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: bookingId })
       });
 
-      // Refund credits
       const member = members.find(m => m.id === booking.member_id);
       const refund = booking.type === 'gym' ? 5 : 6;
       const newCredits = member.credits + refund;
@@ -165,15 +184,14 @@ const GymCRM = () => {
         body: JSON.stringify({ id: member.id, credits: newCredits })
       });
 
-      // Refresh data
       await fetchMembers();
       await fetchBookings();
       
-      // Update current user if it's them
       if (currentUser && booking.member_id === currentUser.id) {
         const updatedMembers = await fetch('/api/members').then(r => r.json());
         const updatedUser = updatedMembers.find(m => m.id === currentUser.id);
         setCurrentUser(updatedUser);
+        sessionStorage.setItem('currentUser', JSON.stringify(updatedUser));
       }
     } catch (err) {
       alert('Cancellation failed');
@@ -198,6 +216,7 @@ const GymCRM = () => {
       const updatedMembers = await fetch('/api/members').then(r => r.json());
       const updatedUser = updatedMembers.find(m => m.id === currentUser.id);
       setCurrentUser(updatedUser);
+      sessionStorage.setItem('currentUser', JSON.stringify(updatedUser));
       
       setTopUpAmount('');
       setShowTopUp(false);
@@ -224,6 +243,16 @@ const GymCRM = () => {
         })
       });
 
+      // Immediately update local state
+      const newOverrides = { ...classOverrides };
+      if (newValue) {
+        newOverrides[key] = true;
+      } else {
+        delete newOverrides[key];
+      }
+      setClassOverrides(newOverrides);
+      
+      // Also fetch from database to be sure
       await fetchOverrides();
     } catch (err) {
       alert('Override failed');
@@ -242,7 +271,7 @@ const GymCRM = () => {
           <div className="text-center mb-8">
             <Dumbbell className="w-16 h-16 mx-auto text-blue-500 mb-4" />
             <h1 className="text-3xl font-bold">Fitness Studio</h1>
-            <p className="text-slate-400 mt-2">Database Connected</p>
+            <p className="text-slate-400 mt-2">Live with Database</p>
           </div>
           <div className="space-y-4">
             <input
@@ -293,7 +322,7 @@ const GymCRM = () => {
                 <div className="text-2xl font-bold">£{currentUser.credits.toFixed(2)}</div>
               </div>
             )}
-            <button onClick={() => setCurrentUser(null)} className="bg-slate-700 px-4 py-2 rounded flex items-center gap-2">
+            <button onClick={handleLogout} className="bg-slate-700 px-4 py-2 rounded flex items-center gap-2">
               <LogOut className="w-4 h-4" /> Logout
             </button>
           </div>
@@ -548,7 +577,8 @@ const GymCRM = () => {
                   .map(booking => {
                     const session = schedule.find(s => s.key === booking.session_key);
                     const count = getSessionBookings(booking.session_key, booking.date).length;
-                    const isConfirmed = count >= 4;
+                    const overrideKey = `${booking.session_key}-${booking.date}`;
+                    const isConfirmed = count >= 4 || classOverrides[overrideKey];
                     return (
                       <div key={booking.id} className="bg-slate-800 p-4 rounded-lg mb-3">
                         <div className="flex justify-between items-start">
