@@ -332,65 +332,67 @@ const GymCRM = () => {
 
   return (
     <div className="min-h-screen bg-slate-900 text-white">
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 shadow-lg">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center gap-3">
-              <Dumbbell className="w-8 h-8" />
-              Fitness Studio {currentUser.isAdmin ? 'Manager' : ''}
-            </h1>
-            <p className="text-blue-100 mt-1">
-              {currentUser.isAdmin ? 'Admin Dashboard' : `Welcome, ${currentUser.name}`}
-            </p>
-          </div>
-          <div className="text-right">
-            {!currentUser.isAdmin && (
-              <div className="bg-blue-700 px-4 py-2 rounded-lg mb-2">
-                <div className="text-sm text-blue-200">Account Balance</div>
-                <div className="text-2xl font-bold">£{currentUser.credits.toFixed(2)}</div>
-                <div className="text-xs text-blue-200">{Math.floor(currentUser.credits / 6)} classes | {Math.floor(currentUser.credits / 5)} gym visits</div>
-              </div>
-            )}
-            <button
-              onClick={handleLogout}
-              className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg flex items-center gap-2 ml-auto"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </button>
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 sm:p-6 shadow-lg">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2 sm:gap-3">
+                <Dumbbell className="w-6 h-6 sm:w-8 sm:h-8" />
+                Fitness Studio {currentUser.isAdmin ? 'Manager' : ''}
+              </h1>
+              <p className="text-blue-100 mt-1 text-sm sm:text-base">
+                {currentUser.isAdmin ? 'Admin Dashboard' : `Welcome, ${currentUser.name}`}
+              </p>
+            </div>
+            <div className="w-full sm:w-auto">
+              {!currentUser.isAdmin && (
+                <div className="bg-blue-700 px-3 py-2 rounded-lg mb-2">
+                  <div className="text-xs text-blue-200">Account Balance</div>
+                  <div className="text-xl sm:text-2xl font-bold">£{currentUser.credits.toFixed(2)}</div>
+                  <div className="text-xs text-blue-200">{Math.floor(currentUser.credits / 6)} classes | {Math.floor(currentUser.credits / 5)} gym visits</div>
+                </div>
+              )}
+              <button
+                onClick={handleLogout}
+                className="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg flex items-center gap-2 w-full sm:w-auto justify-center"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6">
         {currentUser.isAdmin ? (
           <>
-            <div className="flex gap-4 mb-6">
+            <div className="flex flex-wrap gap-2 sm:gap-4 mb-6">
               <button
                 onClick={() => setActiveTab('schedule')}
-                className={`px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition ${
+                className={`flex-1 min-w-[140px] px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition text-sm sm:text-base ${
                   activeTab === 'schedule' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                 }`}
               >
-                <Calendar className="w-5 h-5" />
-                Class Schedule
+                <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
+                Classes
               </button>
               <button
                 onClick={() => setActiveTab('gym-access')}
-                className={`px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition ${
+                className={`flex-1 min-w-[140px] px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition text-sm sm:text-base ${
                   activeTab === 'gym-access' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                 }`}
               >
-                <Dumbbell className="w-5 h-5" />
-                Gym Access
+                <Dumbbell className="w-4 h-4 sm:w-5 sm:h-5" />
+                Gym
               </button>
               <button
                 onClick={() => setActiveTab('members')}
-                className={`px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition ${
+                className={`flex-1 min-w-[140px] px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition text-sm sm:text-base ${
                   activeTab === 'members' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                 }`}
               >
-                <Users className="w-5 h-5" />
+                <Users className="w-4 h-4 sm:w-5 sm:h-5" />
                 Members
               </button>
             </div>
@@ -552,37 +554,41 @@ const GymCRM = () => {
           </>
         ) : (
           <>
-            <div className="flex gap-4 mb-6">
+            <div className="flex flex-wrap gap-2 sm:gap-4 mb-6">
               <button
                 onClick={() => setActiveTab('book-classes')}
-                className={`px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition ${
+                className={`flex-1 min-w-[110px] px-3 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition text-sm sm:text-base ${
                   activeTab === 'book-classes' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                 }`}
               >
-                <Calendar className="w-5 h-5" />
-                Book Classes
+                <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">Book Classes</span>
+                <span className="sm:hidden">Classes</span>
               </button>
               <button
                 onClick={() => setActiveTab('my-bookings')}
-                className={`px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition ${
+                className={`flex-1 min-w-[110px] px-3 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition text-sm sm:text-base ${
                   activeTab === 'my-bookings' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                 }`}
               >
-                <Users className="w-5 h-5" />
-                My Bookings
+                <Users className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">My Bookings</span>
+                <span className="sm:hidden">Bookings</span>
               </button>
               <button
                 onClick={() => setShowGymAccess(true)}
-                className="px-6 py-3 rounded-lg font-semibold flex items-center gap-2 bg-purple-600 hover:bg-purple-700 transition"
+                className="flex-1 min-w-[110px] px-3 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 transition text-sm sm:text-base"
               >
-                <Dumbbell className="w-5 h-5" />
-                Book Gym Access
+                <Dumbbell className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">Book Gym</span>
+                <span className="sm:hidden">Gym</span>
               </button>
               <button
                 onClick={() => setShowTopUp(true)}
-                className="px-6 py-3 rounded-lg font-semibold flex items-center gap-2 bg-green-600 hover:bg-green-700 transition ml-auto"
+                className="w-full sm:w-auto px-3 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 transition text-sm sm:text-base"
               >
-                £ Top Up Credits
+                £ <span className="hidden sm:inline">Top Up Credits</span>
+                <span className="sm:hidden">Top Up</span>
               </button>
             </div>
 
@@ -673,14 +679,14 @@ const GymCRM = () => {
                 <h2 className="text-2xl font-bold mb-6">My Bookings</h2>
                 
                 <div className="bg-slate-800 p-6 rounded-lg mb-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-slate-700 p-4 rounded-lg">
-                      <div className="text-slate-400 text-sm">Credits</div>
-                      <div className="text-2xl font-bold">£{currentUser.credits.toFixed(2)}</div>
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                    <div className="bg-slate-700 p-3 sm:p-4 rounded-lg">
+                      <div className="text-slate-400 text-xs sm:text-sm">Credits</div>
+                      <div className="text-xl sm:text-2xl font-bold">£{currentUser.credits.toFixed(2)}</div>
                     </div>
-                    <div className="bg-slate-700 p-4 rounded-lg">
-                      <div className="text-slate-400 text-sm">Upcoming</div>
-                      <div className="text-2xl font-bold">
+                    <div className="bg-slate-700 p-3 sm:p-4 rounded-lg">
+                      <div className="text-slate-400 text-xs sm:text-sm">Upcoming</div>
+                      <div className="text-xl sm:text-2xl font-bold">
                         {bookings.filter(b => b.memberId === currentUser.id && b.date >= selectedDate && !b.attended).length}
                       </div>
                     </div>
