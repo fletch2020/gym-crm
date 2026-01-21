@@ -197,9 +197,17 @@ const GymCRM = () => {
     const overrideKey = `${sessionKey}-${date}`;
     const isOverridden = classOverrides[overrideKey];
     
-    if (count >= 4) return { status: 'running', color: 'bg-green-600', text: 'Running' };
-    if (isOverridden) return { status: 'override', color: 'bg-amber-600', text: 'Override - Running' };
-    return { status: 'cancelled', color: 'bg-red-600', text: 'Cancelled' };
+    if (count >= 4) return { status: 'running', color: 'bg-green-600', text: 'Confirmed', userColor: 'bg-green-600' };
+    if (isOverridden) return { status: 'override', color: 'bg-amber-600', text: 'Override - Running', userColor: 'bg-green-600' };
+    return { status: 'cancelled', color: 'bg-red-600', text: 'Cancelled', userColor: 'bg-amber-600', userText: 'Pending' };
+  };
+
+  const getUserBookingStatus = (sessionKey, date) => {
+    const classStatus = getClassStatus(sessionKey, date);
+    if (classStatus.status === 'running' || classStatus.status === 'override') {
+      return { color: 'bg-green-600', text: 'Confirmed - Class Running', icon: '✓' };
+    }
+    return { color: 'bg-amber-600', text: 'Pending - Needs 4 People', icon: '⏱' };
   };
 
   const getMemberName = (id) => {
@@ -701,11 +709,14 @@ const GymCRM = () => {
                     .map(booking => {
                       const session = booking.type === 'gym' ? null : schedule.find(s => s.key === booking.sessionKey);
                       const cancelCheck = canCancelBooking(booking);
+                      const userStatus = booking.type === 'gym' ? 
+                        { color: 'bg-green-600', text: 'Confirmed' } : 
+                        getUserBookingStatus(booking.sessionKey, booking.date);
                       
                       return (
                         <div key={booking.id} className="bg-slate-800 p-4 rounded-lg">
                           <div className="flex justify-between items-start">
-                            <div>
+                            <div className="flex-1">
                               <div className="font-semibold">
                                 {booking.type === 'gym' ? 'Gym Access' : `${session?.day} ${session?.time}`}
                               </div>
@@ -713,6 +724,13 @@ const GymCRM = () => {
                                 {booking.type === 'gym' ? 'General gym use - £5.00' : `${session?.type} - £6.00`}
                               </div>
                               <div className="text-slate-500 text-sm">{new Date(booking.date).toLocaleDateString('en-GB')}</div>
+                              
+                              {booking.type === 'class' && (
+                                <div className={`${userStatus.color} text-white px-3 py-1 rounded-full text-xs font-semibold mt-2 inline-block`}>
+                                  {userStatus.text}
+                                </div>
+                              )}
+                              
                               {!cancelCheck.can && (
                                 <div className="flex items-center gap-2 text-xs text-amber-400 mt-2">
                                   <Clock className="w-3 h-3" />
