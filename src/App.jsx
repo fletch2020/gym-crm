@@ -150,7 +150,138 @@ const GymCRM = () => {
       </div>
 
       <div className="max-w-7xl mx-auto p-6">
-        {!currentUser.isAdmin && (
+        {currentUser.isAdmin ? (
+          <>
+            <div className="flex gap-4 mb-6">
+              <button
+                onClick={() => setActiveTab('schedule')}
+                className={`px-6 py-3 rounded-lg font-semibold ${activeTab === 'schedule' ? 'bg-blue-600' : 'bg-slate-800'}`}
+              >
+                Class Schedule
+              </button>
+              <button
+                onClick={() => setActiveTab('members')}
+                className={`px-6 py-3 rounded-lg font-semibold ${activeTab === 'members' ? 'bg-blue-600' : 'bg-slate-800'}`}
+              >
+                Members
+              </button>
+            </div>
+
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="bg-slate-800 border border-slate-700 rounded px-4 py-2 mb-6"
+            />
+
+            {activeTab === 'schedule' && (
+              <div>
+                {['Monday', 'Tuesday', 'Thursday', 'Friday', 'Saturday'].map(day => {
+                  const daySessions = schedule.filter(s => s.day === day);
+                  if (daySessions.length === 0) return null;
+                  return (
+                    <div key={day} className="bg-slate-800 p-6 rounded-lg mb-6">
+                      <h3 className="text-xl font-bold mb-4 text-blue-400">{day}</h3>
+                      {daySessions.map((session) => {
+                        const sessionBookings = getSessionBookings(session.key, selectedDate);
+                        const count = sessionBookings.length;
+                        const overrideKey = `${session.key}-${selectedDate}`;
+                        const isOverridden = classOverrides[overrideKey];
+                        const isConfirmed = count >= 4 || isOverridden;
+                        
+                        return (
+                          <div key={session.key} className="bg-slate-700 p-4 rounded-lg mb-3">
+                            <div className="flex justify-between items-start mb-3">
+                              <div>
+                                <div className="font-semibold text-lg">{session.time}</div>
+                                <div className="bg-blue-600 inline-block px-3 py-1 rounded-full text-sm font-semibold mt-1">
+                                  {session.type}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className={`${isConfirmed ? 'bg-green-600' : 'bg-red-600'} px-3 py-1 rounded-full text-sm font-semibold mb-2`}>
+                                  {isConfirmed ? 'Running' : 'Cancelled'}
+                                </div>
+                                <div className="text-slate-400 text-sm">{count} / 4 minimum</div>
+                              </div>
+                            </div>
+
+                            {count < 4 && (
+                              <div className="bg-slate-800 p-3 rounded mb-3 flex items-center gap-2 text-amber-400">
+                                <AlertCircle className="w-4 h-4" />
+                                <span className="text-sm">Class needs {4 - count} more to run</span>
+                                <button
+                                  onClick={() => toggleOverride(session.key, selectedDate)}
+                                  className="ml-auto bg-amber-600 hover:bg-amber-700 px-3 py-1 rounded text-white text-sm"
+                                >
+                                  {isOverridden ? 'Remove Override' : 'Override & Run'}
+                                </button>
+                              </div>
+                            )}
+
+                            <div className="space-y-2">
+                              <div className="text-sm font-semibold text-slate-300 mb-2">
+                                Bookings (£{count * 6} revenue):
+                              </div>
+                              {sessionBookings.map(booking => {
+                                const member = members.find(m => m.id === booking.memberId);
+                                return (
+                                  <div key={booking.id} className="bg-slate-600 p-3 rounded flex justify-between items-center">
+                                    <span className="font-medium">{member?.name}</span>
+                                    <button
+                                      onClick={() => removeBooking(booking.id)}
+                                      className="text-red-400 hover:text-red-300 p-1"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                );
+                              })}
+                              {count === 0 && <div className="text-slate-500 text-sm">No bookings yet</div>}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {activeTab === 'members' && (
+              <div>
+                {members.filter(m => !m.isAdmin).map(member => {
+                  const memberBookings = bookings.filter(b => b.memberId === member.id);
+                  const upcomingBookings = memberBookings.filter(b => b.date >= selectedDate);
+                  return (
+                    <div key={member.id} className="bg-slate-800 p-6 rounded-lg mb-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-xl font-bold">{member.name}</h3>
+                          <div className="mt-2 text-slate-400 text-sm space-y-1">
+                            <div>📧 {member.email}</div>
+                            <div>📱 {member.phone}</div>
+                            <div>Member since: {new Date(member.joined).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="bg-green-600 px-4 py-2 rounded-lg mb-2">
+                            <div className="text-sm">Credits</div>
+                            <div className="text-2xl font-bold">£{member.credits.toFixed(2)}</div>
+                            <div className="text-xs">{Math.floor(member.credits / 6)} classes</div>
+                          </div>
+                          <div className="text-sm text-slate-400">
+                            <div>{upcomingBookings.length} upcoming</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        ) : (
           <>
             <div className="flex gap-4 mb-6">
               <button
@@ -296,6 +427,7 @@ const GymCRM = () => {
               </div>
             )}
           </>
+        )}
         )}
 
         {showBookSession && (
